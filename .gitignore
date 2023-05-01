@@ -2,7 +2,7 @@ __pycache__
 venv/
 darknet/
 darknet/data/
-src/cfg/
+*.weights
 videos/
 # images/
 # mangalore-images/
