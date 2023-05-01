@@ -1,0 +1,11 @@
+__pycache__
+venv/
+darknet/
+darknet/data/
+src/cfg/
+videos/
+# images/
+# mangalore-images/
+temp/
+*.mp4
+*.avi
