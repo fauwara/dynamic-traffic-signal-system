@@ -4,10 +4,29 @@ import cv2 as cv
 import subprocess
 import time
 import os
+import pprint
 
 def show_image(img):
     cv.imshow("Image", img)
     cv.waitKey(0)
+
+def map_id_to_value(id, labels):
+    return labels[id]
+
+def calculate_PCU(vehicle_count):
+    PCU_for_vehicle = {
+        'car': 1,
+        'bus': 3,
+        'truck': 3,
+    }
+    
+    PCU_value = 0 
+    for class_ in vehicle_count:
+        if class_ in PCU_for_vehicle:
+            print(class_)
+            PCU_value += PCU_for_vehicle[class_]*vehicle_count[class_]
+    
+    return PCU_value
 
 def draw_labels_and_boxes(img, boxes, confidences, classids, idxs, colors, labels):
     # If there are any detections
@@ -32,6 +51,13 @@ def generate_boxes_confidences_classids(outs, height, width, tconf):
     boxes = []
     confidences = []
     classids = []
+
+    # dictionary to store count of label
+    # labels_count = {}
+    # for index, label in enumerate(labels):
+    #     labels_count[label] = {'index': index, 'count': 0}
+
+    # pprint.pprint(labels_count)
 
     for out in outs:
         for detection in out:
@@ -64,6 +90,7 @@ def generate_boxes_confidences_classids(outs, height, width, tconf):
 def infer_image(net, layer_names, height, width, img, colors, labels, FLAGS, 
             boxes=None, confidences=None, classids=None, idxs=None, infer=True):
     
+
     if infer:
         # Contructing a blob from the input image
         blob = cv.dnn.blobFromImage(img, 1 / 255.0, (416, 416), 
@@ -87,10 +114,25 @@ def infer_image(net, layer_names, height, width, img, colors, labels, FLAGS,
         # Apply Non-Maxima Suppression to suppress overlapping bounding boxes
         idxs = cv.dnn.NMSBoxes(boxes, confidences, FLAGS.confidence, FLAGS.threshold)
 
+
+        # print(classids)
+        vehicle_count = {}
+        for i in idxs:
+            if map_id_to_value(classids[i], labels) in vehicle_count:
+                vehicle_count[map_id_to_value(classids[i], labels)] += 1
+            else:
+                vehicle_count[map_id_to_value(classids[i], labels)] = 1
+        
+        PCU = calculate_PCU(vehicle_count)
+        # pprint.pprint(vehicle_count)
+        # print(f'number of vehicles: {len(boxes)}, {confidences}\n{classids}')
+        
+        # print(idxs)
+
     if boxes is None or confidences is None or idxs is None or classids is None:
         raise '[ERROR] Required variables are set to None before drawing boxes on images.'
         
     # Draw labels and boxes on the image
     img = draw_labels_and_boxes(img, boxes, confidences, classids, idxs, colors, labels)
 
-    return img, boxes, confidences, classids, idxs
+    return img, boxes, confidences, classids, idxs, vehicle_count, PCU

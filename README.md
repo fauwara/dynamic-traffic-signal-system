@@ -23,7 +23,6 @@ py yolo.py
 py yolo.py --image-path='./images/1.jpg' --labels='./cfg/yolo-coco/coco.names' --weights='././cfg/yolo-coco/yolov3.weights' --config='./cfg/yolo-coco/yolov3.cfg'
 ```
 
-
 ```sh
 py yolo.py --video-path='./mangalore-images/2.mp4' --labels='./cfg/yolo-coco/coco.names' --weights='././cfg/yolo-coco/yolov3.weights' --config='./cfg/yolo-coco/yolov3.cfg'
 ```

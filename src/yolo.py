@@ -6,6 +6,11 @@ import time
 import os
 from yolo_utils import infer_image, show_image
 
+# from tkinter import *
+import tkinter as ttk
+from tkinter import filedialog
+from PIL import Image, ImageTk
+
 FLAGS = []
 
 def detect(FLAGS, unparsed):
@@ -43,8 +48,23 @@ def detect(FLAGS, unparsed):
 							Please check the path provided!'
 
 		finally:
-			img, _, _, _, _ = infer_image(net, layer_names, height, width, img, colors, labels, FLAGS)
-			show_image(img)
+			img, _, _, _, _, vehicle_count, PCU = infer_image(net, layer_names, height, width, img, colors, labels, FLAGS)
+			# print(type(img))
+			photo = Image.fromarray(img)
+			photo.thumbnail((700, 600))
+
+			# print(type(photo))
+			photo = ImageTk.PhotoImage(photo)
+			image_label.config(image=photo)
+			image_label.image = photo
+
+			PCU_value_label.config(text=f'PCU Value: {PCU}')
+			vehicle_count_label.config(text=f'Vehicle Count: {vehicle_count}')
+			
+
+			# show_image(img)
+		
+		# return 1, img
 
 	elif FLAGS.video_path:
 		# Read the video
@@ -81,6 +101,7 @@ def detect(FLAGS, unparsed):
 			print ("[INFO] Cleaning up...")
 			writer.release()
 			vid.release()
+			# return 2, 0
 
 
 	else:
@@ -108,8 +129,23 @@ def detect(FLAGS, unparsed):
 		vid.release()
 		cv.destroyAllWindows()
 
+	# return 3, 0
+
 
 if __name__ == '__main__':
+	
+	# class model_details():
+	# 	MODEL_PATH = './cfg/yolo-coco'
+	# 	WEIGHTS = 'yolov3.weights'
+	# 	CONFIG = 'yolov3.cfg'
+	# 	LABELS = 'coco.names'
+	# 	IMAGE_PATH = 'mangalore-images/1.jpeg'
+	# 	VIDEO_PATH = 'mangalore-images/2.mp4'
+	# 	VIDEO_OUTPUT_PATH = './output.avi'
+	# 	CONFIDENCE = 0.5
+	# 	THRESHOLD = 0.3
+	# 	DOWNLOAD_MODEL = False
+	# 	SHOW_TIME = False
 
 	# paste this into a the GUI code.
 	parser = argparse.ArgumentParser()
@@ -133,6 +169,7 @@ if __name__ == '__main__':
 
 	parser.add_argument('-i', '--image-path',
 		type=str,
+		default='./images/1.jpg',
 		help='The path to the image file')
 
 	parser.add_argument('-v', '--video-path',
@@ -177,5 +214,80 @@ if __name__ == '__main__':
 
 	FLAGS, unparsed = parser.parse_known_args()
 
-	detect(FLAGS, unparsed)
+	# root = Tk()
+	# frm = ttk.Frame(root, padding=10)
+	# frm.grid()
+	# ttk.Label(frm, text="Hello World!").grid(column=0, row=0)
+	# ttk.Button(frm, text="Quit", command=root.destroy).grid(column=1, row=0)
 
+
+	def select_file():
+		filetypes = (("JPEG files","*.jpg"),("PNG files","*.png"),("All files","*.*"))
+		file_path = filedialog.askopenfilename(filetypes=filetypes)
+		# print("Selected file:", file_path)
+		FLAGS.image_path = file_path
+
+		display_image(file_path)
+
+	def display_image(file_path):
+		image = Image.open(file_path)
+		image.thumbnail((700, 600))
+		# print(f'selction: {type(image)}')
+		# print(type(image))
+		photo = ImageTk.PhotoImage(image)
+		image_label.config(image=photo)
+		image_label.image = photo
+		filename_label.config(text="Selected file: " + file_path)
+
+
+	root = ttk.Tk()
+
+		# Set size for the GUI
+	root.geometry("700x700")
+	root.configure(background='white')
+	root.title("Image Selector")
+
+	# Create a label widget for the filename
+	filename_label = ttk.Label(root, text="")
+	filename_label.pack()
+
+	# Create a label widget for the image
+	image_label = ttk.Label(root)
+	image_label.pack(expand=True)
+
+	PCU_value_label = ttk.Label(root, text='PCU Value: ')
+	PCU_value_label.pack()
+
+	vehicle_count_label = ttk.Label(root, text='Vehicle Count: ')
+	vehicle_count_label.pack()
+
+	PCU_value_label_hint = ttk.Label(root, text='PCU stands for Passenger Car Unit,\nwhich is a unit of measure used in transportation engineering to represent \nthe space occupied by a vehicle on a roadway or intersection. It is a way to normalize different\ntypes of vehicles by comparing them to a standard passenger car.')
+	PCU_value_label_hint.pack()
+
+
+	# PCU_value_label = ttk.Label(root, text='PCU Value:')
+	# PCU_value_label.pack()
+	# PCU_value_label_hint = ttk.Label(root, text='PCU stands for Passenger Car Unit, which is a unit of measure used in transportation engineering to represent the space occupied by a vehicle on a roadway or intersection. It is a way to normalize different types of vehicles by comparing them to a standard passenger car.')
+	# PCU_value_label_hint.pack()
+
+	# Create a button frame
+	button_frame = ttk.Frame(root)
+	button_frame.pack(side="bottom", pady=10)
+
+	# Create "Select Image" button widget
+	select_button = ttk.Button(button_frame, text="Select Image", command=select_file)
+	select_button.pack(side="left", padx=10)
+
+	# Create "Resize Image" button widget
+	resize_button = ttk.Button(button_frame, text="Detect Vehicles", command=lambda: detect(FLAGS, unparsed))
+	resize_button.pack(side="left", padx=10)
+
+	photo = None
+	root.mainloop()
+
+
+	# status, res = detect(FLAGS, unparsed)
+	# if status == 1:
+	# 	show_image(res)
+	# else:
+	# 	pass
