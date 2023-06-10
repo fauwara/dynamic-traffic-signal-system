@@ -15,6 +15,7 @@ def map_id_to_value(id, labels):
 
 def calculate_PCU(vehicle_count):
     PCU_for_vehicle = {
+        'motorbike': 0.5,
         'car': 1,
         'bus': 3,
         'truck': 3,
